@@ -10,3 +10,7 @@
     height: 30px;
     width: 30px;
 }
+
+.square.valid {
+    border: red 1px solid;
+}

@@ -6,11 +6,23 @@ const PLAYER = {
   WHITE: 'white',
 }
 
+const DIRECTIONS = [
+  [1, 1],
+  [1, 0],
+  [0, 1],
+  [-1, -1],
+  [-1, 0],
+  [0, -1],
+  [-1, 1],
+  [1, -1],
+]
+
 export class Board extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       board: this.initBoard(),
+      currentColor: PLAYER.BLACK,
     }
   }
 
@@ -26,7 +38,95 @@ export class Board extends React.Component {
     return board;
   }
 
+  getValidMoves(board, currentColor) {
+    const moves = [];
+    for (let x=0; x < board.length; x++) {
+      for (let y=0; y< board.length; y++) {
+        if (this.getIsValidMove(board, currentColor, x, y)) {
+          moves.push([x, y]);
+        }
+      }
+    }
+
+  }
+
+  getIsValidMove(board, currentColor, x, y) {
+    const currentSpace = board[x][y];
+    if (currentSpace) {
+      return false;
+    }
+
+    const otherColor = currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+    // Check each of the eight directions
+    for (const [dx, dy] of DIRECTIONS) {
+      let nextX = x+dx;
+      let nextY = y+dy
+      let nextSquare = this.getSquare(board, nextX, nextY);
+      if (nextSquare !== otherColor) {
+        continue;
+      }
+      while(nextSquare === otherColor) {
+        nextX += dx;
+        nextY += dy;
+        nextSquare = this.getSquare(board, nextX, nextY);
+      }
+      if (nextSquare === currentColor) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  getSquare(board, x, y) {
+    const row = board[x];
+    if (!row) {
+      return null;
+    }
+    return row[y];
+
+  }
+
+  makeMove(x, y) {
+    if (!this.getIsValidMove(this.state.board, this.state.currentColor, x, y)) {
+      return false;
+    }
+    const currentColor = this.state.currentColor;
+    const otherColor = currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+    // Changing state
+    const boardCopy = JSON.parse(JSON.stringify(this.state.board));
+    boardCopy[x][y] = this.state.currentColor;
+    for (const [dx, dy] of DIRECTIONS) {
+      let nextX = x+dx;
+      let nextY = y+dy
+      let nextSquare = this.getSquare(boardCopy, nextX, nextY);
+      if (nextSquare !== otherColor) {
+        continue;
+      }
+      while(nextSquare === otherColor) {
+        nextX += dx;
+        nextY += dy;
+        nextSquare = this.getSquare(boardCopy, nextX, nextY);
+      }
+      if (nextSquare === currentColor) {
+        // loop back and make changes
+        while (nextX !== x || nextY !== y) {
+          boardCopy[nextX][nextY] = currentColor;
+          nextX -= dx;
+          nextY -= dy;
+        }
+      } else {
+        continue;
+      }
+    }
+    this.setState({
+      board: boardCopy,
+      currentColor: otherColor,
+    })
+
+  }
+
   onCellClick(x, y) {
+    this.makeMove(x,y);
     console.log('Clicked', x, y);
   }
 
@@ -36,6 +136,7 @@ export class Board extends React.Component {
         return (
           <Square
             value={cell}
+            validMove={this.getIsValidMove(this.state.board, this.state.currentColor, x, y)}
             onClick={() => this.onCellClick(x,y)}
           />
         )
@@ -64,9 +165,13 @@ class Square extends React.Component {
     } else if (this.props.value === PLAYER.WHITE) {
       value = 'O';
     }
+    let className = 'square';
+    if (this.props.validMove) {
+      className += ' valid';
+    }
     return (
       <div
-        className='square'
+        className={className}
         onClick={this.props.onClick}
       >
         {value}
