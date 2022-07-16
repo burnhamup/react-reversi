@@ -159,16 +159,18 @@ export class Board extends React.Component {
 class Square extends React.Component {
   render() {
     // TODO render an actual disc here
-    let value = null;
-    if (this.props.value === PLAYER.BLACK) {
-      value = 'X';
-    } else if (this.props.value === PLAYER.WHITE) {
-      value = 'O';
-    }
+    let value = this.props.value ? '●' : '';
+
     let className = 'square';
     if (this.props.validMove) {
       className += ' valid';
     }
+    if (this.props.value === PLAYER.BLACK) {
+      className += ' black';
+    } else if (this.props.value === PLAYER.WHITE) {
+      className += ' white';
+    }
+
     return (
       <div
         className={className}

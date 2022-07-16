@@ -1,5 +1,11 @@
-.board {
+body {
+    background: saddlebrown;
+}
 
+.board {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 .row {
     display: flex;
@@ -7,10 +13,21 @@
 
 .square {
     border: black 1px solid;
-    height: 30px;
-    width: 30px;
+    height: 4rem;
+    width: 4rem;
+    font-size: 3rem;
+    text-align: center;
 }
 
 .square.valid {
     border: red 1px solid;
+    background: red;
+}
+
+.square.black {
+    color: black;
+}
+
+.square.white {
+    color: white;
 }
