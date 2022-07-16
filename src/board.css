@@ -1,8 +1,9 @@
 body {
     background: saddlebrown;
+    user-select: none;
 }
 
-.board {
+.game {
     background: darkgreen;
     display: flex;
     flex-direction: column;
@@ -11,6 +12,14 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
 }
+
+.scoreboard {
+    background: dimgrey;
+    display: flex;
+    justify-content: space-between;
+    font-size: 4rem;
+}
+
 .row {
     display: flex;
 }
@@ -29,10 +38,10 @@ body {
     border: yellow 4px solid;
 }
 
-.square.black {
+.black {
     color: black;
 }
 
-.square.white {
+.white {
     color: white;
 }

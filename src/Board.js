@@ -42,6 +42,18 @@ class BoardState {
     return board;
   }
 
+  getScore(color) {
+    let score = 0;
+    for (let x=0; x < this.board.length; x++) {
+      for (let y=0; y< this.board.length; y++) {
+        if (this.board[x][y] === color) {
+          score += 1;
+        }
+      }
+    }
+    return score;
+  }
+
   getMoves(color) {
     const moves = [];
     for (let x=0; x < this.board.length; x++) {
@@ -147,6 +159,10 @@ export class Game extends React.Component {
   render() {
     return (
       <div className="game">
+        <ScoreBoard
+          board={this.state.board}
+          currentColor={this.state.currentColor}
+        />
         <Board
           board={this.state.board}
           currentColor={this.state.currentColor}
@@ -157,9 +173,29 @@ export class Game extends React.Component {
   }
 }
 
-export class Board extends React.Component {
+class ScoreBoard extends React.Component {
+  render() {
+    const whiteScore = this.props.board.getScore(PLAYER.WHITE);
+    const blackScore = this.props.board.getScore(PLAYER.BLACK);
+    const classCurrentPlayer = 'currentPlayer ' + this.props.currentColor;
+    return (
+      <div className="scoreboard">
+        <div className="white">
+          ● {whiteScore}
+        </div>
+        <div className={classCurrentPlayer}>
+          ●
+        </div>
+        <div className="black">
+          ● {blackScore}
+        </div>
+      </div>
+    )
+  }
+}
 
 
+class Board extends React.Component {
   render() {
     const rows = this.props.board.board.map((row, x) => {
       const cells = row.map((cell, y) => {
