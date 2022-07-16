@@ -3,15 +3,21 @@ body {
 }
 
 .board {
+    background: darkgreen;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 .row {
     display: flex;
 }
 
 .square {
+        box-sizing: border-box;
+
     border: black 1px solid;
     height: 4rem;
     width: 4rem;
@@ -20,8 +26,7 @@ body {
 }
 
 .square.valid {
-    border: red 1px solid;
-    background: red;
+    border: yellow 4px solid;
 }
 
 .square.black {
