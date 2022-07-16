@@ -17,13 +17,17 @@ const DIRECTIONS = [
   [1, -1],
 ]
 
-export class Board extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      board: this.initBoard(),
-      currentColor: PLAYER.BLACK,
+class BoardState {
+  constructor(board=null) {
+    if (board == null) {
+      this.board = this.initBoard();
+    } else {
+      this.board = JSON.parse(JSON.stringify(board));
     }
+  }
+
+  copy() {
+    return new BoardState(this.board);
   }
 
   initBoard() {
@@ -38,106 +42,117 @@ export class Board extends React.Component {
     return board;
   }
 
-  getValidMoves(board, currentColor) {
+  getMoves(color) {
     const moves = [];
-    for (let x=0; x < board.length; x++) {
-      for (let y=0; y< board.length; y++) {
-        if (this.getIsValidMove(board, currentColor, x, y)) {
+    for (let x=0; x < this.board.length; x++) {
+      for (let y=0; y< this.board.length; y++) {
+        if (this.isValidMove(color, x, y)) {
           moves.push([x, y]);
         }
       }
     }
-
+    return moves;
   }
 
-  getIsValidMove(board, currentColor, x, y) {
-    const currentSpace = board[x][y];
+  isValidMove(color, x, y) {
+    const currentSpace = this.board[x][y];
     if (currentSpace) {
       return false;
     }
 
-    const otherColor = currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+    const otherColor = color === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
     // Check each of the eight directions
     for (const [dx, dy] of DIRECTIONS) {
       let nextX = x+dx;
       let nextY = y+dy
-      let nextSquare = this.getSquare(board, nextX, nextY);
+      let nextSquare = this.getSquare(nextX, nextY);
       if (nextSquare !== otherColor) {
         continue;
       }
       while(nextSquare === otherColor) {
         nextX += dx;
         nextY += dy;
-        nextSquare = this.getSquare(board, nextX, nextY);
+        nextSquare = this.getSquare(nextX, nextY);
       }
-      if (nextSquare === currentColor) {
+      if (nextSquare === color) {
         return true;
       }
     }
     return false;
   }
 
-  getSquare(board, x, y) {
-    const row = board[x];
+  getSquare(x, y) {
+    const row = this.board[x];
     if (!row) {
       return null;
     }
     return row[y];
-
   }
 
-  makeMove(x, y) {
-    if (!this.getIsValidMove(this.state.board, this.state.currentColor, x, y)) {
+  makeMove(color, x, y) {
+    if (!this.isValidMove(color, x, y)) {
       return false;
     }
-    const currentColor = this.state.currentColor;
+    const currentColor = color;
     const otherColor = currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
     // Changing state
-    const boardCopy = JSON.parse(JSON.stringify(this.state.board));
-    boardCopy[x][y] = this.state.currentColor;
+    this.board[x][y] = color;
     for (const [dx, dy] of DIRECTIONS) {
       let nextX = x+dx;
       let nextY = y+dy
-      let nextSquare = this.getSquare(boardCopy, nextX, nextY);
+      let nextSquare = this.getSquare(nextX, nextY);
       if (nextSquare !== otherColor) {
         continue;
       }
       while(nextSquare === otherColor) {
         nextX += dx;
         nextY += dy;
-        nextSquare = this.getSquare(boardCopy, nextX, nextY);
+        nextSquare = this.getSquare(nextX, nextY);
       }
       if (nextSquare === currentColor) {
         // loop back and make changes
         while (nextX !== x || nextY !== y) {
-          boardCopy[nextX][nextY] = currentColor;
+          this.board[nextX][nextY] = currentColor;
           nextX -= dx;
           nextY -= dy;
         }
-      } else {
-        continue;
       }
     }
-    this.setState({
-      board: boardCopy,
-      currentColor: otherColor,
-    })
-
+    return true;
   }
 
-  onCellClick(x, y) {
-    this.makeMove(x,y);
-    console.log('Clicked', x, y);
+}
+
+export class Board extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      board: new BoardState(),
+      currentColor: PLAYER.BLACK,
+    }
+  }
+
+
+  makeMove(x, y) {
+    const boardCopy = this.state.board.copy();
+    const success = boardCopy.makeMove(this.state.currentColor, x, y);
+    const otherColor = this.state.currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+    if (success) {
+      this.setState({
+        board: boardCopy,
+        currentColor: otherColor,
+      })
+    }
   }
 
   render() {
-    const rows = this.state.board.map((row, x) => {
+    const rows = this.state.board.board.map((row, x) => {
       const cells = row.map((cell, y) => {
         return (
           <Square
             value={cell}
-            validMove={this.getIsValidMove(this.state.board, this.state.currentColor, x, y)}
-            onClick={() => this.onCellClick(x,y)}
+            validMove={this.state.board.isValidMove(this.state.currentColor, x, y)}
+            onClick={() => this.makeMove(x,y)}
           />
         )
       })
