@@ -123,7 +123,7 @@ class BoardState {
 
 }
 
-export class Board extends React.Component {
+export class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -132,8 +132,7 @@ export class Board extends React.Component {
     }
   }
 
-
-  makeMove(x, y) {
+  makeMove(x,y) {
     const boardCopy = this.state.board.copy();
     const success = boardCopy.makeMove(this.state.currentColor, x, y);
     const otherColor = this.state.currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
@@ -146,13 +145,30 @@ export class Board extends React.Component {
   }
 
   render() {
-    const rows = this.state.board.board.map((row, x) => {
+    return (
+      <div className="game">
+        <Board
+          board={this.state.board}
+          currentColor={this.state.currentColor}
+          onClick={(x,y) => this.makeMove(x,y)}
+        />
+      </div>
+    )
+  }
+}
+
+export class Board extends React.Component {
+
+
+  render() {
+    const rows = this.props.board.board.map((row, x) => {
       const cells = row.map((cell, y) => {
         return (
           <Square
             value={cell}
-            validMove={this.state.board.isValidMove(this.state.currentColor, x, y)}
-            onClick={() => this.makeMove(x,y)}
+            validMove={this.props.board.isValidMove(this.props.currentColor, x, y)}
+            onClick={() => {this.props.onClick(x,y)}}
+            key={x*8+y}
           />
         )
       })
