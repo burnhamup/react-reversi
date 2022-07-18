@@ -172,7 +172,12 @@ export class Game extends React.Component {
     const boardCopy = this.state.board.copy();
     const swaps = boardCopy.makeMove(this.state.currentColor, x, y);
     if (swaps.length) {
-      const otherColor = this.state.currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+      let otherColor = this.state.currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+      if (!boardCopy.getMoves(otherColor).length) {
+        // Skipping a turn if the other player doesn't have moves
+        // If neither player has moves, the game is over... and I should formally detect it.
+        otherColor = this.state.currentColor;
+      }
       this.swaps = swaps;
       this.setState({
         board: boardCopy,
