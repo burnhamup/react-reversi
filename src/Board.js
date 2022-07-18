@@ -6,6 +6,13 @@ const PLAYER = {
   WHITE: 'white',
 }
 
+const GAME_STATE = {
+  PLAYER_TURN: 'player_turn',
+  ANIMATING: 'animating',
+}
+
+const ANIMATION_SPEED = 300;
+
 const DIRECTIONS = [
   [1, 1],
   [1, 0],
@@ -101,10 +108,16 @@ class BoardState {
     return row[y];
   }
 
+  setSquare(color, x, y) {
+    this.board[x][y] = color;
+  }
+
   makeMove(color, x, y) {
+    const swaps = [];
     if (!this.isValidMove(color, x, y)) {
-      return false;
+      return swaps;
     }
+
     const currentColor = color;
     const otherColor = currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
     // Changing state
@@ -123,14 +136,18 @@ class BoardState {
       }
       if (nextSquare === currentColor) {
         // loop back and make changes
+        nextX -= dx;
+        nextY -= dy;
         while (nextX !== x || nextY !== y) {
           this.board[nextX][nextY] = currentColor;
+          swaps.unshift([nextX, nextY]);
           nextX -= dx;
           nextY -= dy;
         }
       }
     }
-    return true;
+    swaps.unshift([x,y]);
+    return swaps;
   }
 
 }
@@ -138,21 +155,53 @@ class BoardState {
 export class Game extends React.Component {
   constructor(props) {
     super(props);
+    const board = new BoardState();
     this.state = {
       board: new BoardState(),
+      visualBoard: board.copy(),
+      visualColor: PLAYER.BLACK,
       currentColor: PLAYER.BLACK,
+      currentState: GAME_STATE.PLAYER_TURN,
     }
   }
 
   makeMove(x,y) {
+    if (this.state.currentState !== GAME_STATE.PLAYER_TURN) {
+      return;
+    }
     const boardCopy = this.state.board.copy();
-    const success = boardCopy.makeMove(this.state.currentColor, x, y);
-    const otherColor = this.state.currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
-    if (success) {
+    const swaps = boardCopy.makeMove(this.state.currentColor, x, y);
+    if (swaps.length) {
+      const otherColor = this.state.currentColor === PLAYER.WHITE ? PLAYER.BLACK : PLAYER.WHITE;
+      this.swaps = swaps;
       this.setState({
         board: boardCopy,
         currentColor: otherColor,
+        currentState: GAME_STATE.ANIMATING,
       })
+      this.animationTimeout = setTimeout(() => this.animation_tick(), 100);
+    }
+  }
+
+  animation_tick() {
+    if (this.state.currentState !== GAME_STATE.ANIMATING) {
+      return;
+    }
+    if (this.swaps.length) {
+      const move = this.swaps.shift();
+      const boardCopy = this.state.visualBoard.copy()
+      boardCopy.setSquare(this.state.visualColor, move[0], move[1]);
+      this.setState({
+        visualBoard: boardCopy,
+      })
+      this.animationTimeout = setTimeout(() => this.animation_tick(), ANIMATION_SPEED);
+    } else {
+      this.setState({
+        visualBoard: this.state.board.copy(),
+        visualColor: this.state.currentColor,
+        currentState: GAME_STATE.PLAYER_TURN,
+      })
+      clearInterval(this.animationTimeout);
     }
   }
 
@@ -160,12 +209,13 @@ export class Game extends React.Component {
     return (
       <div className="game">
         <ScoreBoard
-          board={this.state.board}
-          currentColor={this.state.currentColor}
+          board={this.state.visualBoard}
+          currentColor={this.state.visualColor}
         />
         <Board
-          board={this.state.board}
-          currentColor={this.state.currentColor}
+          board={this.state.visualBoard}
+          currentColor={this.state.visualColor}
+          currentState={this.state.currentState}
           onClick={(x,y) => this.makeMove(x,y)}
         />
       </div>
@@ -202,7 +252,7 @@ class Board extends React.Component {
         return (
           <Square
             value={cell}
-            validMove={this.props.board.isValidMove(this.props.currentColor, x, y)}
+            validMove={ this.props.currentState === GAME_STATE.PLAYER_TURN ? this.props.board.isValidMove(this.props.currentColor, x, y) : false}
             onClick={() => {this.props.onClick(x,y)}}
             key={x*8+y}
           />
