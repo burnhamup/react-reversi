@@ -179,7 +179,12 @@ export class Game extends React.Component {
         currentColor: otherColor,
         currentState: GAME_STATE.ANIMATING,
       })
-      this.animationTimeout = setTimeout(() => this.animation_tick(), 100);
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (this.state.currentState === GAME_STATE.ANIMATING && prevState.currentState === GAME_STATE.PLAYER_TURN) {
+      this.animation_tick();
     }
   }
 
