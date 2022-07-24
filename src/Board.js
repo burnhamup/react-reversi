@@ -241,7 +241,7 @@ class ScoreBoard extends React.Component {
     return (
       <div className="scoreboard">
         <div className="white">
-          <div className='disc'>{blackScore}</div>
+          <div className='disc'>{whiteScore}</div>
         </div>
         <div className={classCurrentPlayer}>
           <div className='disc'></div>
@@ -287,7 +287,6 @@ class Board extends React.Component {
 
 class Square extends React.Component {
   render() {
-    // TODO render an actual disc here
     let value = this.props.value ? (<div className='disc'></div>) : '';
 
     let className = 'square';
