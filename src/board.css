@@ -61,14 +61,28 @@ body {
     border-radius: 50%;
     text-align: center;
     font-size: 3.5vmin;
-    /*padding: 1vmin;*/
-    transition: background-color 1s;
 }
 
 .black .disc {
     background: black;
+    animation-name: flipToBlack;
+    animation-duration: 1s;
 }
 
 .white .disc {
     background: white;
+    animation-name: flipToWhite;
+    animation-duration: 1s;
+}
+
+@keyframes flipToBlack {
+    0% {background-color: white; width: 6vmin}
+    50% {width: 0}
+    100% {background-color: black; width: 6vmin}
+}
+
+@keyframes flipToWhite {
+    0% {background-color: black; width: 6vmin}
+    50% {width: 0}
+    100% {background-color: white; width: 6vmin}
 }
