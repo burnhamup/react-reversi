@@ -187,9 +187,38 @@ export class Game extends React.Component {
     }
   }
 
+  makeAIMove() {
+    // Get list of moves
+    const moves = this.state.board.getMoves(this.state.currentColor);
+    // Choose one
+    if (moves.length === 0) {
+      return;
+    }
+    const choice = Math.floor(Math.random() * moves.length);
+    const move = moves[choice];
+    // Call make move
+    this.makeMove(move[0], move[1]);
+  }
+
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (this.state.currentState === GAME_STATE.ANIMATING && prevState.currentState === GAME_STATE.PLAYER_TURN) {
       this.animation_tick();
+    }
+    // Also gross
+    if (this.state.currentState === GAME_STATE.PLAYER_TURN && prevState.currentState === GAME_STATE.ANIMATING) {
+      if (this.state.currentColor === PLAYER.WHITE && this.props.whitePlayerType === 'cpu') {
+        this.makeAIMove()
+      }
+      if (this.state.currentColor === PLAYER.BLACK && this.props.blackPlayerType === 'cpu') {
+        this.makeAIMove()
+      }
+    }
+  }
+
+  componentDidMount() {
+    // Gross code
+    if (this.props.blackPlayerType === 'cpu') {
+      this.makeAIMove();
     }
   }
 
